@@ -19,12 +19,10 @@
     <item
         android:id="@+id/action_popular"
         android:orderInCategory="1"
-        app:showAsAction="ifRoom"
         android:title="Popular Movies"/>
     <item
         android:id="@+id/action_top_rated"
         android:orderInCategory="1"
-        app:showAsAction="ifRoom"
         android:title="Top Rated Movies"/>
 
 </menu>

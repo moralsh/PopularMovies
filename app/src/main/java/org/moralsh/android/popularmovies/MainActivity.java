@@ -1,7 +1,12 @@
 package org.moralsh.android.popularmovies;
 
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.GridLayoutManager;
+
 import android.os.Bundle;
 import android.os.AsyncTask;
 
@@ -10,8 +15,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ProgressBar;
-
 import java.io.IOException;
 import java.net.URL;
 
@@ -19,17 +24,15 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONException;
 import org.moralsh.android.popularmovies.utilities.NetworkUtils;
+import org.moralsh.android.popularmovies.Movies;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+                implements MovieAdapter.MovieClickListener {
 
-    private TextView mUrlDisplayTextView;
 
-    private TextView mSearchResultsTextView;
-
-    // COMPLETED (12) Create a variable to store a reference to the error message TextView
-    private TextView mErrorMessageDisplay;
-
-    // COMPLETED (24) Create a ProgressBar variable to store a reference to the ProgressBar
+    private MovieAdapter mAdapter;
+    private TextView mErrorMessage;
+    private RecyclerView postersList;
     private ProgressBar mLoadingIndicator;
 
 
@@ -38,63 +41,38 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mUrlDisplayTextView = (TextView) findViewById(R.id.tv_url_display);
-        mSearchResultsTextView = (TextView) findViewById(R.id.tv_tmdb_query_results_json);
-        mErrorMessageDisplay = (TextView) findViewById(R.id.tv_error_message_display);
-        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+        Context context = MainActivity.this;
+        postersList = (RecyclerView) findViewById(R.id.rv_posters);
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_data);
+        mErrorMessage = (TextView) findViewById(R.id.tv_error_message);
+        // A grid with 2 posters per row
+        GridLayoutManager layoutManager = new GridLayoutManager(this,2);
+        postersList.setLayoutManager(layoutManager);
 
+
+        mAdapter = new MovieAdapter(Movies.NUMBER_OF_POSTERS,this);
+        postersList.setHasFixedSize(true);
+        postersList.setAdapter(mAdapter);
+        if ( NetworkUtils.isOnline(context)) {
+            makePopularMoviesQuery();
+        } else {
+            postersList.setVisibility(View.INVISIBLE);
+            mErrorMessage.setVisibility(View.VISIBLE);
+        }
     }
 
-    // TODO (1)  (COMPLETADO) Agregar NetworkUtils para gestiona la comunicacion con TheMovieDB
-    // TODO (2) Añadir REcyclerView con grid para gestionar la actividad principal de los posters de las películas
-    // TODO (3) Generar una actividad nueva para el detalle de las películas
-
     /**
-     * This method retrieves the search text from the EditText, constructs the
-     * URL (using {@link NetworkUtils}) for the github repository you'd like to find, displays
-     * that URL in a TextView, and finally fires off an AsyncTask to perform the GET request using
-     * our {@link TheMovieDBQueryTask}
+     * This methods retrieve the data for popular and top rated Movies, using AsyncTask via the class declarated below
      */
     private void makePopularMoviesQuery() {
         URL popularMoviesQuery = NetworkUtils.buildPopularUrl();
-        mUrlDisplayTextView.setText(popularMoviesQuery.toString());
         new TheMovieDBQueryTask().execute(popularMoviesQuery);
     }
 
     private void makeTopRatedMoviesQuery() {
         URL topRatedMoviesQuery = NetworkUtils.buildTopRatedUrl();
-        mUrlDisplayTextView.setText(topRatedMoviesQuery.toString());
         new TheMovieDBQueryTask().execute(topRatedMoviesQuery);
     }
-
-    /**
-     * This method will make the View for the JSON data visible and
-     * hide the error message.
-     * <p>
-     * Since it is okay to redundantly set the visibility of a View, we don't
-     * need to check whether each view is currently visible or invisible.
-     */
-    private void showJsonDataView() {
-        // First, make sure the error is invisible
-        mErrorMessageDisplay.setVisibility(View.INVISIBLE);
-        // Then, make sure the JSON data is visible
-        mSearchResultsTextView.setVisibility(View.VISIBLE);
-    }
-
-    /**
-     * This method will make the error message visible and hide the JSON
-     * View.
-     * <p>
-     * Since it is okay to redundantly set the visibility of a View, we don't
-     * need to check whether each view is currently visible or invisible.
-     */
-    private void showErrorMessage() {
-        // First, hide the currently visible data
-        mSearchResultsTextView.setVisibility(View.INVISIBLE);
-        // Then, show the error
-        mErrorMessageDisplay.setVisibility(View.VISIBLE);
-    }
-
 
 
     public class TheMovieDBQueryTask extends AsyncTask<URL, Void, String> {
@@ -103,6 +81,8 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             mLoadingIndicator.setVisibility(View.VISIBLE);
+            postersList.setVisibility(View.INVISIBLE);
+
         }
 
         @Override
@@ -117,26 +97,54 @@ public class MainActivity extends AppCompatActivity {
             return tmdbResults;
         }
 
+        // we populate here the arrays in Movies
         @Override
         protected void onPostExecute(String tmdbResults) {
+            postersList.setVisibility(View.VISIBLE);
             mLoadingIndicator.setVisibility(View.INVISIBLE);
-            mSearchResultsTextView.setText("");
+            String[] posterPathArray = new String[Movies.NUMBER_OF_POSTERS];
+            String[] backgroundPathArray = new String[Movies.NUMBER_OF_POSTERS];
+            String[] releaseDateArray = new String[Movies.NUMBER_OF_POSTERS];
+            String[] overviewArray = new String[Movies.NUMBER_OF_POSTERS];
+            Double[] ratingsArray = new Double[Movies.NUMBER_OF_POSTERS];
+            int[] movieIdArray = new int[Movies.NUMBER_OF_POSTERS];
+            String[] movieTitleArray = new String[Movies.NUMBER_OF_POSTERS];
+
             if (tmdbResults != null && !tmdbResults.equals("")) {
-                showJsonDataView();
                 try {
                     JSONObject popularMoviesJSON = new JSONObject(tmdbResults);
                     JSONArray resultsArray = popularMoviesJSON.getJSONArray("results");
                     for (int i = 0; i< resultsArray.length(); i++) {
                         JSONObject jsonobject = resultsArray.getJSONObject(i);
                         String title = jsonobject.getString("title");
-                        mSearchResultsTextView.append(title + "\n\n\n");
+                        String overview = jsonobject.getString("overview");
+                        String releasDate = jsonobject.getString("release_date");
+                        Double rating = jsonobject.getDouble("vote_average");
+
+                        int id = jsonobject.getInt("id");
+                        String posterPath = jsonobject.getString("poster_path");
+                        String backdropPath = jsonobject.getString("backdrop_path");
+                        movieIdArray[i] = id;
+                        posterPathArray[i] = NetworkUtils.buildPosterImageUrl(posterPath).toString();
+                        backgroundPathArray[i] = NetworkUtils.buildPosterImageUrl(backdropPath,"original").toString();
+                        movieTitleArray[i] = title;
+                        overviewArray[i] = overview;
+                        ratingsArray[i] = rating;
+                        releaseDateArray[i] = releasDate;
                     }
+                    Movies.setMoviePosterURL(posterPathArray);
+                    Movies.setMovieTitle(movieTitleArray);
+                    Movies.setMovieBackground(backgroundPathArray);
+                    Movies.setMovieOverview(overviewArray);
+                    Movies.setMovieRating(ratingsArray);
+                    Movies.setMovieReleaseDate(releaseDateArray);
+
+                    mAdapter.notifyDataSetChanged();
+
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                // mSearchResultsTextView.setText(tmdbResults);
-            } else {
-                showErrorMessage();
             }
         }
     }
@@ -152,13 +160,33 @@ public class MainActivity extends AppCompatActivity {
         int itemThatWasClickedId = item.getItemId();
         if (itemThatWasClickedId == R.id.action_popular) {
             makePopularMoviesQuery();
+            mAdapter = new MovieAdapter(Movies.NUMBER_OF_POSTERS,this);
+            postersList.setAdapter(mAdapter);
             return true;
         } else if (itemThatWasClickedId == R.id.action_top_rated) {
             makeTopRatedMoviesQuery();
+            mAdapter = new MovieAdapter(Movies.NUMBER_OF_POSTERS,this);
+            postersList.setAdapter(mAdapter);
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    // handle the clicks on each poster
+    @Override
+    public void onListItemClick(int clickedItemIndex) {
+        // TODO launch new activity from here to open movie details
+        String textEntered = "" + clickedItemIndex;
+
+        Context context = MainActivity.this;
+        /* This is the class that we want to start (and open) when the button is clicked. */
+        Class destinationActivity = MovieDetail.class;
+
+         Intent startChildActivityIntent = new Intent(context, destinationActivity);
+
+         startChildActivityIntent.putExtra(Intent.EXTRA_TEXT, textEntered);
+         startActivity(startChildActivityIntent);
+
+    }
 
 }

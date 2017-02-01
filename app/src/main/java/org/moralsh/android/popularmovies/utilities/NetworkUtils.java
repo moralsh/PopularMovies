@@ -16,6 +16,13 @@
 package org.moralsh.android.popularmovies.utilities;
 
 import android.net.Uri;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
+import android.content.Context;
+
+import org.moralsh.android.popularmovies.MainActivity;
+import org.moralsh.android.popularmovies.R;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,10 +31,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Scanner;
 
+
 /**
  * These utilities will be used to communicate with the network.
  */
 public class NetworkUtils {
+
+
+    // Some useful constants
 
     final static String THEMOVIEDB_BASE_URL =
             "http://api.themoviedb.org/3";
@@ -35,11 +46,14 @@ public class NetworkUtils {
     final static String  TOP_RATED_MOVIES = "/movie/top_rated";
     final static String  MOVIE_DETAIL = "/movie/";
 
+
     /* You need to write your own TheMovieDB api_key here to try the application */
     final static String API_KEY = "";
 
     final static String PARAM_QUERY = "api_key";
 
+    final static String POSTER_BASE_URL = "http://image.tmdb.org/t/p/";
+    final static String POSTER_SIZE = "w185";
 
     /**
      * Builds the URL used to query Popular movies.
@@ -82,7 +96,7 @@ public class NetworkUtils {
     }
 
     /**
-     * Builds the URL used to query detail on a particular movie.
+     * Builds the URL used to query detail on a particular movie. Not used yet
      *
      * @param movieId The movie ID on which to return details
      * @return The URL to use to query TMDB server.
@@ -102,6 +116,46 @@ public class NetworkUtils {
         return url;
     }
 
+    /**
+     * Builds the URL of the poster (or background) Image
+     *
+     * @param posterImage The image name we append to get the full poster image URL
+     * @return The URL of the image.
+     */
+    public static URL buildPosterImageUrl(String posterImage) {
+        Uri builtUri = Uri.parse(POSTER_BASE_URL + POSTER_SIZE + posterImage).buildUpon()
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
+    }
+
+    /**
+     * Builds the URL of the poster (or background) Image. Overload to be able to get a different size
+     *
+     * @param posterImage The image name we append to get the full poster image URL
+     * @param posterSize The size of the poster (w185, w500...)
+     * @return The URL of the image.
+     */
+    public static URL buildPosterImageUrl(String posterImage, String posterSize) {
+        Uri builtUri = Uri.parse(POSTER_BASE_URL + posterSize + posterImage).buildUpon()
+                .build();
+
+        URL url = null;
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
+    }
 
     /**
      * This method returns the entire result from the HTTP response.
@@ -127,5 +181,12 @@ public class NetworkUtils {
         } finally {
             urlConnection.disconnect();
         }
+    }
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }
