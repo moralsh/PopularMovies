@@ -3,6 +3,7 @@ package org.moralsh.android.popularmovies;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.GridLayoutManager;
@@ -41,12 +42,18 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        GridLayoutManager layoutManager;
         Context context = MainActivity.this;
         postersList = (RecyclerView) findViewById(R.id.rv_posters);
         mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_data);
         mErrorMessage = (TextView) findViewById(R.id.tv_error_message);
-        // A grid with 2 posters per row
-        GridLayoutManager layoutManager = new GridLayoutManager(this,2);
+
+        // A grid with 2 posters per row or 3 in landscape mode
+        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+             layoutManager = new GridLayoutManager(this,2);
+        } else {
+             layoutManager = new GridLayoutManager(this,3);
+        }
         postersList.setLayoutManager(layoutManager);
 
 

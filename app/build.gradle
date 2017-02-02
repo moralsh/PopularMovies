@@ -17,6 +17,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildTypes.each {
+        it.buildConfigField 'String', 'THEMOVIEDB_API_KEY', MyTheMovieDBApiKey
+    }
 }
 
 repositories {
@@ -34,3 +37,4 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.2'
     testCompile 'junit:junit:4.12'
 }
+

@@ -21,6 +21,7 @@ import android.net.NetworkInfo;
 
 import android.content.Context;
 
+import org.moralsh.android.popularmovies.BuildConfig;
 import org.moralsh.android.popularmovies.MainActivity;
 import org.moralsh.android.popularmovies.R;
 
@@ -46,15 +47,12 @@ public class NetworkUtils {
     final static String  TOP_RATED_MOVIES = "/movie/top_rated";
     final static String  MOVIE_DETAIL = "/movie/";
 
-
-    /* You need to write your own TheMovieDB api_key here to try the application */
-    final static String API_KEY = "";
-
     final static String PARAM_QUERY = "api_key";
 
     final static String POSTER_BASE_URL = "http://image.tmdb.org/t/p/";
     final static String POSTER_SIZE = "w185";
 
+    private static String TheMovieDBApiKey = BuildConfig.THEMOVIEDB_API_KEY;
     /**
      * Builds the URL used to query Popular movies.
      *
@@ -62,7 +60,7 @@ public class NetworkUtils {
      */
     public static URL buildPopularUrl() {
         Uri builtUri = Uri.parse(THEMOVIEDB_BASE_URL + POPULAR_MOVIES).buildUpon()
-                .appendQueryParameter(PARAM_QUERY, API_KEY)
+                .appendQueryParameter(PARAM_QUERY, TheMovieDBApiKey)
                 .build();
 
         URL url = null;
@@ -82,7 +80,7 @@ public class NetworkUtils {
      */
     public static URL buildTopRatedUrl() {
         Uri builtUri = Uri.parse(THEMOVIEDB_BASE_URL + TOP_RATED_MOVIES).buildUpon()
-                .appendQueryParameter(PARAM_QUERY, API_KEY)
+                .appendQueryParameter(PARAM_QUERY, TheMovieDBApiKey)
                 .build();
 
         URL url = null;
@@ -103,7 +101,7 @@ public class NetworkUtils {
      */
     public static URL buildMovieDetailUrl(int movieId) {
         Uri builtUri = Uri.parse(THEMOVIEDB_BASE_URL + MOVIE_DETAIL + movieId).buildUpon()
-                .appendQueryParameter(PARAM_QUERY, API_KEY)
+                .appendQueryParameter(PARAM_QUERY, TheMovieDBApiKey)
                 .build();
 
         URL url = null;
