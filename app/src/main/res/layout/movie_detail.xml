@@ -1,17 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+
+
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MovieDetail">
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MovieDetail">
+
+
 
     <ImageView
-        android:id="@+id/iv_background_Image"
-        android:layout_width="match_parent"
-        android:layout_height="270dp"
+            android:id="@+id/iv_background_Image"
+            android:layout_width="match_parent"
+            android:layout_height="270dp"
+            />
 
-        />
     <ImageView
         android:id="@+id/iv_poster_Image_detail"
         android:layout_width="wrap_content"
@@ -27,22 +35,19 @@
         android:layout_toEndOf="@id/iv_poster_Image_detail"
         android:paddingLeft="5dp"
         android:paddingRight="5dp"
-        android:textSize="25sp"
-      />
-    <ScrollView
+        android:textSize="25sp" />
+
+
+    <TextView
+        android:id="@+id/tv_data_display"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/iv_poster_Image_detail">
+        android:layout_below="@id/iv_poster_Image_detail"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:textSize="20sp"
+        />
 
-        <TextView
-            android:id="@+id/tv_data_display"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="5dp"
-            android:paddingRight="5dp"
-            android:textSize="20sp"
-            />
-    </ScrollView>
+    </RelativeLayout>
 
-
-</RelativeLayout>
+</ScrollView>
